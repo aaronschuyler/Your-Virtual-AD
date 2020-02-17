@@ -7,7 +7,6 @@ const fs = require('fs')
 //cors
 const cors = require('cors')
 const corsOptions = {
-    origin: ['http://97.82.169.245:8080', 'http://97.82.169.245:3000'],
     methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'], //the port my react app is running on.
     credentials: true,
 }
