@@ -3,6 +3,6 @@ axios.defaults.withCredentials = true; // enable axios post cookie, default fals
 
 export default () => {
     return axios.create({
-        baseURL: `18.218.24.115:8000`
+        baseURL: `http://18.218.24.115:8000`
     });
 };
