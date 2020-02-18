@@ -32,8 +32,6 @@ export default {
       const res = await UserVal.userVal();
       if (res.data.accessLevel == "admin") {
         this.$store.commit("setAuthentication", true);
-      } else {
-        console.log("user is not authenticated");
       }
     },
     async getPost() {
@@ -49,7 +47,9 @@ export default {
         team1: this.team1,
         team2: this.team2
       });
-      this.$router.push({ name: "Games" });
+      this.$router.push({
+        name: "Games"
+      });
     }
   }
 };
@@ -63,8 +63,10 @@ export default {
   outline: none;
   font-size: 12px;
 }
+
 .form div {
 }
+
 .app_post_btn {
   background: #4d7ef7;
   color: #fff;

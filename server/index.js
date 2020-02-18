@@ -7,7 +7,7 @@ const fs = require('fs')
 //cors
 const cors = require('cors')
 const corsOptions = {
-    origin: "*" ,
+    origin: ['http://yvad.s3-website.us-east-2.amazonaws.com'],
     methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'], //the port my react app is running on.
     credentials: true,
 }
