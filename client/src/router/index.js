@@ -16,73 +16,73 @@ import Dates from "@/components/months";
 Vue.use(VueRouter);
 
 const router = new VueRouter({
-  mode: "history",
-  base: process.env.BASE_URL,
-  routes: [
-    {
-      path: "/",
-      name: "Home",
-      component: Home
-    },
-    {
-      path: "/games",
-      name: "Games",
-      component: Games
-    },
-    {
-      path: "/sports",
-      name: "Sports",
-      component: Sports
-    },
-    {
-      path: "/divisions",
-      name: "Divisions",
-      component: Divisions
-    },
-    {
-      path: "/games/new",
-      name: "NewGame",
-      component: NewGame
-    },
-    {
-      path: "/games/:id",
-      name: "EditGame",
-      component: EditGame
-    },
-    {
-      path: "/teams/:teamName",
-      name: "Team",
-      component: Team
-    },
-    {
-      path: "/schedule",
-      name: "Schedule",
-      component: Schedule
-    },
-    {
-      path: "/teams",
-      name: "Teams",
-      component: Teams
-    },
-    {
-      path: "/organization",
-      name: "Orgs",
-      component: Orgs
-    },
-    {
-      path: "/dates",
-      name: "Dates",
-      component: Dates
-    },
-    {
-      path: "/organization/:orgName",
-      name: "Org",
-      component: Org,
-      children: [
+    //mode: "history",
+    //base: process.env.BASE_URL,
+    routes: [
         {
-          path: ":sport",
-          name: "OrgTeams",
-          component: OrgTeams
+            path: "/",
+            name: "Home",
+            component: Home
+    },
+        {
+            path: "/games",
+            name: "Games",
+            component: Games
+    },
+        {
+            path: "/sports",
+            name: "Sports",
+            component: Sports
+    },
+        {
+            path: "/divisions",
+            name: "Divisions",
+            component: Divisions
+    },
+        {
+            path: "/games/new",
+            name: "NewGame",
+            component: NewGame
+    },
+        {
+            path: "/games/:id",
+            name: "EditGame",
+            component: EditGame
+    },
+        {
+            path: "/teams/:teamName",
+            name: "Team",
+            component: Team
+    },
+        {
+            path: "/schedule",
+            name: "Schedule",
+            component: Schedule
+    },
+        {
+            path: "/teams",
+            name: "Teams",
+            component: Teams
+    },
+        {
+            path: "/organization",
+            name: "Orgs",
+            component: Orgs
+    },
+        {
+            path: "/dates",
+            name: "Dates",
+            component: Dates
+    },
+        {
+            path: "/organization/:orgName",
+            name: "Org",
+            component: Org,
+            children: [
+                {
+                    path: ":sport",
+                    name: "OrgTeams",
+                    component: OrgTeams
         }
       ]
     }
