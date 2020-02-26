@@ -202,6 +202,7 @@
                 });
                 this.team = response.data[0];
                 this.published = this.team.published
+                console.log(this.published)
             },
             upFunc: function(loc) {
                 this.files[loc] = this.$refs.file.files[loc]
