@@ -1,42 +1,41 @@
 <template>
     <div class="org-template">
-        <div class="hero">
+        <div class="hero" :style="{ backgroundImage: 'url(' + heroImageURL + ')' }">
             <h1>{{ this.$route.params.teamName }}</h1>
             <button class="theme-button" @click="editHero = !editHero">Edit Image</button>
-            <div v-if="editHero" class="upload"><input type="file" id="file" ref="file" @change="upFunc(0)"><button @click="submitFile(0)">submit</button> </div>
+            <div v-if="!editHero" class="upload"><input type="file" id="file" ref="file" @change="upFunc(0)"><button @click="submitFile(0)">submit</button> </div>
         </div>
-        <div class="team">
-            <table>
-                <tr class="blue-row">
-                    <td>
+        <div v-if="published || auth" class="team">
+            <div class="container-fluid">
+                <div class="row blue-row">
+                    <div class="col-2">
                         <button class="theme-button" :class="{ active: !viewMode }" style="float:left" @click="viewModeChange">
                             <font-awesome-icon class="blue-icon" icon="calendar-alt" />
                         </button>
-                    </td>
-                    <td>
                         <button class="theme-button" :class="{ active: viewMode }" style="float:left" @click="viewModeChange">
                             <font-awesome-icon class="blue-icon" icon="bars" />
                         </button>
-                    </td>
-                    <th>{{ team.teamName }}</th>
-                </tr>
-            </table>
+                    </div>
+                    <div class="col-8 my-auto row-heading">Schedule</div>
+
+                </div>
+            </div>
 
 
             <div v-if="viewMode">
-                <table class="data-rows" style="margin-bottom:50px;">
-                    <tr class="labels">
-                        <td>VS</td>
-                        <td>Game Site</td>
-                        <td>Date And Time</td>
-                    </tr>
-                    <tr v-for="(post, index) in posts" :key="index">
-                        <td>{{ post.team2 }}</td>
-                        <td>{{ post.gameSite }}</td>
-                        <td>{{ formatDate(post.date) }}</td>
-                    </tr>
+                <div class="container-fluid data-rows" style="margin-bottom:50px;">
+                    <div class=" row labels">
+                        <div class="col">VS</div>
+                        <div class="col">Game Site</div>
+                        <div class="col">Date And Time</div>
+                    </div>
+                    <div class="row" v-for="(post, index) in posts" :key="index">
+                        <div class="col">{{ post.team2 }}</div>
+                        <div class="col">{{ post.gameSite }}</div>
+                        <div class="col">{{ formatDate(post.date) }}</div>
+                    </div>
                     <tr></tr>
-                </table>
+                </div>
             </div>
             <div v-else>
                 <div class="calendar">
@@ -123,17 +122,24 @@
                 </div>
             </div>
         </div>
-        <div class="description">
-            <table>
-                <tr>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td></td>
-                </tr>
-            </table>
+        <div class="no-schedule" v-else>
+            <p>The Schedule for {{ this.$route.params.teamName}} has not been created yet.</p>
+        </div>
+        <div class="description container-fluid">
+            <div class="row">
+                <div class="col featured-image">
+                    <img :src="heroImageURL">
+                </div>
+                <div class="col">
+                    <h2>Announcements</h2>
+                    <article>
+                        <h3>Practice</h3>
+                        <p>Don't forget about practice on Friday!</p>
+                        <span>Coach</span>
+                    </article>
+                </div>
+
+            </div>
         </div>
     </div>
 </template>
@@ -147,11 +153,14 @@
         name: "OrgTemplate",
         data() {
             return {
+                heroImageURL: "http://ec2-18-216-99-42.us-east-2.compute.amazonaws.com:8000/images/" + encodeURIComponent(this.$route.params.teamName.trim()) + "/hero.jpg",
                 team: {},
                 editHero: true,
                 posts: [],
                 files: [],
                 viewMode: false,
+                published: false,
+                auth: false,
                 now: new Date(),
                 selectedDate: new Date(),
                 month: new Date().getMonth(),
@@ -184,8 +193,7 @@
                 const res = await UserVal.userVal();
                 if (res.data.accessLevel == "coach") {
                     this.$store.commit("setAuthentication", true);
-                } else {
-                    console.log("user is not authenticated");
+                    this.auth = true
                 }
             },
             async getTeam() {
@@ -193,10 +201,11 @@
                     teamName: this.$route.params.teamName
                 });
                 this.team = response.data[0];
+                this.published = this.team.published
             },
             upFunc: function(loc) {
                 this.files[loc] = this.$refs.file.files[loc]
-                console.log(this.files[0])
+
             },
             submitFile(loc) {
                 let formData = new FormData();
@@ -324,11 +333,37 @@
 
         background: silver;
         padding: 100px;
+        text-align: center;
+        background-size: cover;
+        background-position: center;
+        color: white;
     }
 
     .team {
         width: 60%;
         margin: auto;
+    }
+
+    article h3 {
+        font-size: 20px;
+        font-weight: 800;
+    }
+
+    article span {
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .featured-image img {
+        max-height: 300px;
+    }
+
+    .featured-image {
+        text-align: right;
+    }
+
+    .description {
+        margin-top: 20px;
     }
 
     .team table {
@@ -337,6 +372,13 @@
         color: #000;
         border: none;
         border-spacing: 0;
+    }
+
+    .no-schedule {
+        text-align: center;
+        background: lightblue;
+        padding: 20px;
+        font-weight: 800;
     }
 
     .team table th {
@@ -486,6 +528,11 @@
         position: absolute;
         bottom: 60px;
         background: pink;
+    }
+
+    .row-heading {
+        text-align: center;
+        font-weight: 600;
     }
 
 </style>

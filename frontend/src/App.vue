@@ -1,10 +1,11 @@
 <template>
     <div id="app">
         <div id="topbar">
-            <table>
-                <tr>
-                    <td class="td-left">
-                        <button class="theme-button one-hundred" @click="showAdd = !showAdd"><span v-if="!showAdd">Add a Team</span><span v-else>X</span></button>
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-10">
+                        <button v-if="!access" class="theme-button" @click="showAdd = !showAdd">
+                            <span v-if="!showAdd">Add a Team</span><span v-else>X</span></button>
                         <div v-if="showAdd" id="popup-team-select">
                             <select v-model="addSchool">
                                 <option value="" disabled selected>Select a School</option>
@@ -24,17 +25,17 @@
                         <select v-model="team">
                             <option v-for="(team, index) in chosenteams" :value="team" v-bind:key="index">{{team}}</option>
                         </select>
-                        <button class="theme-button" @click="removeTeam()">Remove</button>
-                    </td>
-                    <td class="td-right"><button @click="loginOut" class="theme-button">{{loginLogout}}</button></td>
+                        <button v-if="!access" class="theme-button" @click="removeTeam()">Remove</button>
+                    </div>
+                    <div class="col"><button @click="loginOut" class="theme-button">{{loginLogout}}</button></div>
                     <div v-if="showLogin" id="popup-login">
                         <input type="text" placeholder="username" v-model="username"><br><br>
                         <input type="password" placeholder="password" v-model="password"><br><br>
                         <button class="theme-button" @click="login">Login</button>
                         <p v-if="messageBool">{{message}}</p>
                     </div>
-                </tr>
-            </table>
+                </div>
+            </div>
         </div>
         <router-view :key="$route.fullPath" />
     </div>
@@ -43,6 +44,7 @@
     import OrgService from "@/services/OrgService";
     import DivService from "@/services/DivService";
     import LoginService from "@/services/LoginService";
+    import TeamService from "@/services/TeamService";
     import Logout from "@/services/Logout";
 
     export default {
@@ -63,22 +65,29 @@
                 message: "Username or password is incorrect. Try again.",
                 messageBool: false,
                 loginLogout: "Login",
-                access: this.$store.state.authenticated
+                access: false,
+                coachOrg: ""
             };
         },
 
         mounted() {
-            //this.$cookies.remove("teams")
+            // this.$cookies.remove("teams")
+            //  this.$cookies.remove("lastTeam")
             this.fetchChosenTeams()
             this.getOrgs()
             this.getDivs()
             this.userVal()
+            if (this.access) this.getTeamsByOrg()
+
         },
         methods: {
             userVal: function() {
                 if (this.$cookies.get("auth") == "true") {
                     this.$store.commit("setAuthentication", true)
-                    console.log("coach is logged in")
+                    this.access = this.$store.state.authenticated
+                    this.$store.commit("setOrg", this.$cookies.get("org"))
+                    this.coachOrg = this.$store.state.org
+                    this.loginLogout = "Logout"
                 }
             },
             async login() {
@@ -87,14 +96,19 @@
                         username: this.username,
                         password: this.password
                     });
-                    if (res) console.log(res)
-                    if (res == "coach") {
+                    if (res.accessLevel == "coach") {
                         this.$store.commit("setAuthentication", true)
+                        this.access = this.$store.state.authenticated
                         this.$cookies.set("auth", true)
                         this.showLogin = false
                         this.username = ""
                         this.password = ""
                         this.loginLogout = "Logout"
+                        this.$cookies.remove("teams")
+                        this.coachOrg = res.organization
+                        this.$store.commit("setOrg", res.organization)
+                        this.$cookies.set("org", res.organization)
+                        this.getTeamsByOrg()
                     } else {
                         this.messageBool = true;
                     }
@@ -114,10 +128,22 @@
                 if (this.$cookies.get("teams") && this.$cookies.get("teams") != null) {
                     this.team = this.$cookies.get("lastTeam")
                     this.chosenteams = JSON.parse(this.$cookies.get("teams"))
-                    //console.log(this.$cookies.get("teams"))
+
                 }
             },
+            async getTeamsByOrg() {
+                const response = await TeamService.fetchTeamsByOrgOnly({
+                    orgName: this.coachOrg
+                });
+                var teams = []
 
+                for (var i = 0; i < response.data.teams.length; i++) {
+                    teams[i] = response.data.teams[i].teamName
+                }
+
+                this.chosenteams = teams
+
+            },
             addTeam: function() {
                 if (!this.chosenteams.includes(this.addSchool + " " + this.addDiv + " " + this.addSport)) {
                     this.chosenteams.push(this.addSchool + " " + this.addDiv + " " + this.addSport)
@@ -136,8 +162,9 @@
             },
             async logout() {
                 this.$store.commit("setAuthentication", false);
-                const res = await Logout.logout();
-                console.log(res);
+                this.access = this.$store.state.authenticated
+                await Logout.logout();
+
 
             }
         },
@@ -156,7 +183,7 @@
             chosenteams: function(val) {
 
                 var json_str = JSON.stringify(val)
-                //console.log(json_str)
+
                 this.$cookies.set("teams", json_str, -1);
             }
         }
@@ -168,7 +195,7 @@
         font-family: arial;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
-        text-align: center;
+
     }
 
     #topbar {
@@ -234,7 +261,7 @@
     }
 
     .theme-button {
-        margin-left: 10px;
+        margin: 10px;
         border: none;
         height: 41px;
         background-color: white;
@@ -246,7 +273,7 @@
 
     select,
     input {
-        margin-left: 10px;
+        margin: 10px;
         background-color: #fff;
         -webkit-transition-duration: .3s;
         transition-duration: .3s;

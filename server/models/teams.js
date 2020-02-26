@@ -2,12 +2,13 @@ var mongoose = require("mongoose");
 var Schema = mongoose.Schema;
 
 var PostSchema = new Schema({
-  teamName: String,
+    teamName: String,
     coach: String,
     organization: String,
     division: String,
     region: String,
     display: Boolean,
+    published: Boolean,
     sport: String,
     blockedDates: Array,
     players: Array,
@@ -16,9 +17,9 @@ var PostSchema = new Schema({
         featuredImage: String,
         description: String,
         facebook: String,
-        instagram: String       
-}
-    
+        instagram: String
+    }
+
 });
 
 var Team = mongoose.model("Team", PostSchema);

@@ -7,8 +7,8 @@ const fs = require('fs')
 //cors
 const cors = require('cors')
 const corsOptions = {
-    origin: ['http://yvad.s3-website.us-east-2.amazonaws.com'],
-    methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'], //the port my react app is running on.
+    origin: ['http://yvad.s3-website.us-east-2.amazonaws.com', 'http://ytp.s3-website.us-east-2.amazonaws.com', 'http://localhost:8080'],
+    methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'], //the port my vue app is running on.
     credentials: true,
 }
 
@@ -86,7 +86,8 @@ var storage = multer.diskStorage({
         cb(null, dir)
     },
     filename: function (req, file, cb) {
-        cb(null, file.fieldname + '-' + Date.now())
+        var ending = file.originalname.substr(file.originalname.length - 4)
+        cb(null, "hero" + ending)
     }
 })
 const upload = multer({
@@ -301,6 +302,7 @@ app.get('/teams', (req, res) => {
         res.send({
             teams: teams
         })
+
     })
 })
 // Fetch single Team
@@ -308,7 +310,7 @@ app.get('/teams/:teamName', (req, res) => {
     var db = req.db
     Team.find({
         'teamName': req.params.teamName
-    }, 'teamName teamPage', function (error, post) {
+    }, 'teamName teamPage published', function (error, post) {
         if (error) {
             console.error(error)
         }
@@ -361,6 +363,7 @@ app.delete('/teams/:id', (req, res) => {
         })
     })
 })
+/////////teambyorgandsprt!!!!
 app.get('/teams/:orgName/:sport', (req, res) => {
     var db = req.db
     console.log(req.params.sport)
@@ -378,6 +381,23 @@ app.get('/teams/:orgName/:sport', (req, res) => {
             teams: posts
         })
     }).sort('date').exec(function (err, docs) {})
+})
+//Org Only
+app.get('/teamsbyorg/:orgName', (req, res) => {
+    var db = req.db
+
+    Team.find({
+        organization: req.params.orgName
+    }, 'teamName organization', function (error, posts) {
+
+        if (error) {
+            console.error(error)
+        }
+
+        res.send({
+            teams: posts
+        })
+    })
 })
 ///ORG ROUTES
 // Fetch all Orgs
