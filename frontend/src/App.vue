@@ -3,7 +3,7 @@
         <div id="topbar">
             <div class="container-fluid">
                 <div class="row">
-                    <div class="col-10">
+                    <div v-if="chosenteams.length" class="col-10 text-left">
                         <button v-if="!access" class="theme-button" @click="showAdd = !showAdd">
                             <span v-if="!showAdd">Add a Team</span><span v-else>X</span></button>
                         <div v-if="showAdd" id="popup-team-select">
@@ -17,17 +17,20 @@
                             </select><br><br>
                             <select v-model="addSport">
                                 <option value="" disabled selected>Select a Sport</option>
-                                <option value="Basketball">Basketball</option>
+                                <option v-for="(sport, index) in sports" :value="sport.sport" v-bind:key="index">{{sport.sport}}</option>
 
                             </select><br><br>
-                            <button class="theme-button" @click="addTeam">Add Team</button></div>
+                            <button class="theme-button" @click="addTeam(true)">Add Team</button></div>
 
                         <select v-model="team">
                             <option v-for="(team, index) in chosenteams" :value="team" v-bind:key="index">{{team}}</option>
                         </select>
                         <button v-if="!access" class="theme-button" @click="removeTeam()">Remove</button>
                     </div>
-                    <div class="col"><button @click="loginOut" class="theme-button">{{loginLogout}}</button></div>
+                    <div v-else class="col-6 text-left my-auto">
+                        <h1 class="my-auto">Your Team Page</h1>
+                    </div>
+                    <div class="col text-right"><button @click="loginOut" class="theme-button">{{loginLogout}}</button></div>
                     <div v-if="showLogin" id="popup-login">
                         <input type="text" placeholder="username" v-model="username"><br><br>
                         <input type="password" placeholder="password" v-model="password"><br><br>
@@ -37,7 +40,36 @@
                 </div>
             </div>
         </div>
-        <router-view :key="$route.fullPath" />
+        <div v-if="!chosenteams.length" class="container-fluid ">
+            <div class="row landing">
+
+                <div class="col my-auto  text-center">
+                    <h2>Select your team!</h2>
+                    <select v-model="addSchool">
+                        <option value="" disabled selected>Select a School</option>
+                        <option v-for="(school, index) in orgs" :value="school.orgName" v-bind:key="index">{{school.orgName}}</option>
+                    </select>
+                    <select v-model="addDiv">
+                        <option value="" disabled selected>Select a Division</option>
+                        <option v-for="(div, index) in divs" :value="div.divName" v-bind:key="index">{{div.divName}}</option>
+                    </select>
+                    <select v-model="addSport">
+                        <option value="" disabled selected>Select a Sport</option>
+                        <option v-for="(sport, index) in sports" :value="sport.sport" v-bind:key="index">{{sport.sport}}</option>
+
+                    </select>
+                    <button class="theme-button" @click="addTeam(false)">Add Team</button>
+                </div>
+            </div>
+        </div>
+        <router-view v-else :key="$route.fullPath" />
+        <div class="container-fluid ">
+            <div class="row footer">
+                <div class="col text-center my-auto">
+                    <p>&copy; 2020 Your Virtual AD</p>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 <script>
@@ -45,6 +77,7 @@
     import DivService from "@/services/DivService";
     import LoginService from "@/services/LoginService";
     import TeamService from "@/services/TeamService";
+    import SportsService from "@/services/SportsService";
     import Logout from "@/services/Logout";
 
     export default {
@@ -53,6 +86,7 @@
             return {
                 team: "",
                 orgs: [],
+                sports: [],
                 chosenteams: [],
                 addSchool: "",
                 addDiv: "",
@@ -73,9 +107,11 @@
         mounted() {
             // this.$cookies.remove("teams")
             //  this.$cookies.remove("lastTeam")
+            if (this.chosenteams.length < 0) this.$cookies.remove("lastTeam")
             this.fetchChosenTeams()
             this.getOrgs()
             this.getDivs()
+            this.getSports()
             this.userVal()
             if (this.access) this.getTeamsByOrg()
 
@@ -96,7 +132,7 @@
                         username: this.username,
                         password: this.password
                     });
-                    if (res.accessLevel == "coach") {
+                    if (res.accessLevel == "coach" || res.accessLevel == "rep") {
                         this.$store.commit("setAuthentication", true)
                         this.access = this.$store.state.authenticated
                         this.$cookies.set("auth", true)
@@ -120,6 +156,9 @@
                     this.logout()
                     this.$cookies.set("auth", false)
                     this.loginLogout = "Login"
+                    this.$cookies.remove("teams")
+                    this.$cookies.remove("lastTeam")
+                    this.chosenTeams = []
                 } else {
                     this.showLogin = !this.showLogin
                 }
@@ -144,10 +183,18 @@
                 this.chosenteams = teams
 
             },
-            addTeam: function() {
+            addTeam: function(val) {
                 if (!this.chosenteams.includes(this.addSchool + " " + this.addDiv + " " + this.addSport)) {
-                    this.chosenteams.push(this.addSchool + " " + this.addDiv + " " + this.addSport)
-                    this.showAdd = !this.showAdd
+                    var team = this.addSchool + " " + this.addDiv + " " + this.addSport;
+                    this.chosenteams.push(team)
+                    if (val) this.showAdd = !this.showAdd
+                    this.team = team
+                    this.$router.push({
+                        name: 'Team',
+                        params: {
+                            teamName: team
+                        }
+                    })
                 }
             },
             async getOrgs() {
@@ -160,11 +207,39 @@
                 var divs = response.data.divs;
                 this.divs = divs;
             },
+            async getSports() {
+                const response = await SportsService.fetchSports();
+                var sports = response.data.sports;
+                this.sports = sports;
+            },
             async logout() {
                 this.$store.commit("setAuthentication", false);
                 this.access = this.$store.state.authenticated
+                this.$cookies.remove("teams")
+                this.$cookies.remove("lastTeam")
+                this.chosenteams = []
+                this.team = ""
+                this.$router.push("/")
                 await Logout.logout();
 
+            },
+            removeTeam: function() {
+                var team = this.team
+                var teams = this.chosenteams.filter(function(e) {
+                    return e !== team
+                })
+                this.chosenteams = teams
+                if (teams[0]) {
+                    this.$router.push({
+                        name: 'Team',
+                        params: {
+                            teamName: teams[0]
+                        }
+                    })
+                    this.team = teams[0]
+                } else {
+                    this.$router.push("/")
+                }
 
             }
         },
@@ -198,13 +273,37 @@
 
     }
 
+    h1 {
+        font-weight: bold;
+        color: white;
+        font-family: impact;
+    }
+
+    h2 {
+        color: white;
+    }
+
     #topbar {
-        background: lightblue;
+        background: #00a7e5;
         padding: 10px;
+        border-bottom: 1px #eee solid;
     }
 
     #topbar table {
         width: 100%;
+    }
+
+    .landing {
+        height: 90vh;
+        background-image: url(assets/sports.svg);
+        background-size: cover;
+    }
+
+    .footer {
+        background: #00a7e5;
+        border-top: 1px #eee solid;
+        height: 10vh;
+        color: white;
     }
 
     .td-left {
@@ -265,7 +364,7 @@
         border: none;
         height: 41px;
         background-color: white;
-        padding: 11px 13px;
+        padding: 0px 13px;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
         border-radius: 3px;
         transition: all 0.3s cubic-bezier(.25, .8, .25, 1);
@@ -273,7 +372,7 @@
 
     select,
     input {
-        margin: 10px;
+        margin: 10px !important;
         background-color: #fff;
         -webkit-transition-duration: .3s;
         transition-duration: .3s;
@@ -283,7 +382,6 @@
         padding-left: 12px;
         padding-right: 12px;
         font-weight: 400;
-        -webkit-appearance: none;
         outline: none;
         border: 1px solid rgba(0, 0, 0, .2);
         border-radius: 4px;

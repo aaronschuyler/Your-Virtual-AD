@@ -7,7 +7,7 @@ const fs = require('fs')
 //cors
 const cors = require('cors')
 const corsOptions = {
-    origin: ['http://yvad.s3-website.us-east-2.amazonaws.com', 'http://yourteampage.com', 'http://localhost:8080'],
+    origin: ['http://yvad.s3-website.us-east-2.amazonaws.com', 'http://yourteampage.com', 'http://localhost:8080', 'http://localhost:8081'],
     methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'], //the port my vue app is running on.
     credentials: true,
 }
@@ -146,17 +146,28 @@ app.post('/users',
         })
         res.send(req.session)
     })
+app.get('/users', (req, res) => {
+    User.find({}, function (error, posts) {
+        if (error) {
+            console.error(error)
+        }
+        res.send({
+            users: posts
+        })
+    })
+})
 //registeration
 app.post('/signup', (req, res) => {
     var db = req.db
     var username = req.body.username
     var password = req.body.password
     var accessLevel = req.body.accessLevel
-
+    var organization = req.body.organization
     var new_user = new User({
         username: username,
         password: password,
-        accessLevel: accessLevel
+        accessLevel: accessLevel,
+        organization: organization
 
     })
 
@@ -295,7 +306,7 @@ app.delete('/posts/:id', (req, res) => {
 //TEAMS Routes
 //Fetch Teams 
 app.get('/teams', (req, res) => {
-    Team.find({}, 'teamName organization sport division display', function (error, teams) {
+    Team.find({}, 'teamName organization sport division display published', function (error, teams) {
         if (error) {
             console.error(error)
         }
@@ -350,6 +361,27 @@ app.post('/teams', (req, res) => {
         })
     })
 })
+// Update a Team
+app.put('/teams/:teamName', (req, res) => {
+    var db = req.db
+
+    Team.findOne({
+        teamName: req.params.teamName
+    }, function (error, post) {
+        if (error) {
+            console.error(error)
+        }
+        post.published = req.body.published
+        post.save(function (error) {
+            if (error) {
+                console.log(error)
+            }
+            res.send({
+                success: true
+            })
+        })
+    })
+})
 // Delete a Team
 app.delete('/teams/:id', (req, res) => {
     var db = req.db
@@ -366,13 +398,10 @@ app.delete('/teams/:id', (req, res) => {
 /////////teambyorgandsprt!!!!
 app.get('/teams/:orgName/:sport', (req, res) => {
     var db = req.db
-    console.log(req.params.sport)
-    console.log(req.params.orgName)
     Team.find({
         organization: req.params.orgName,
         sport: req.params.sport
-    }, 'teamName division display', function (error, posts) {
-        console.log('here')
+    }, 'teamName division display published', function (error, posts) {
         if (error) {
             console.error(error)
         }

@@ -24,27 +24,28 @@
 
             <div v-if="viewMode">
                 <div class="container-fluid data-rows" style="margin-bottom:50px;">
-                    <div class=" row labels">
-                        <div class="col">VS</div>
-                        <div class="col">Game Site</div>
-                        <div class="col">Date And Time</div>
+                    <div class="table-top row labels">
+                        <div class="col my-auto">VS</div>
+                        <div class="col my-auto">Game Site</div>
+                        <div class="col my-auto">Date And Time</div>
                     </div>
                     <div class="row" v-for="(post, index) in posts" :key="index">
                         <div class="col">{{ post.team2 }}</div>
                         <div class="col">{{ post.gameSite }}</div>
                         <div class="col">{{ formatDate(post.date) }}</div>
                     </div>
-                    <tr></tr>
+
                 </div>
             </div>
             <div v-else>
                 <div class="calendar">
-                    <table>
-                        <tr>
-                            <td colspan="2"></td>
-                        </tr>
-                        <tr>
-                            <td valign="top">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
                                 <table>
                                     <tr class="table-top">
                                         <td colspan="7">
@@ -74,9 +75,10 @@
                               (selectedDate.getYear() + 1900) ==
                             date + '-' + month + '-' + year
                         }" v-for="(date, indexx) in week" :key="indexx" @click="selectDate(date)">
-                                            {{ date }}<br />
+                                            <span class="date-number">{{ date }}</span><br />
                                             <span v-if="date">
                                                 <hr />
+
                                                 <span v-for="(post, index) in posts" :key="index">
                                                     <div v-if="
                                 new Date(post.date).getDate() +
@@ -86,14 +88,17 @@
                                   (new Date(post.date).getYear() + 1900) ==
                                   date + '-' + month + '-' + year
                               " class="bullet"></div>
-                                                </span></span>
+
+                                                </span>
+                                            </span>
+
                                         </td>
                                     </tr>
                                 </table>
-                            </td>
-                            <td valign="top" class="sidebar">
+                            </div>
+                            <div class="sidebar col">
                                 <table>
-                                    <tr>
+                                    <tr class="table-top">
                                         <td colspan="4">
                                             {{
                           months[selectedDate.getMonth()] +
@@ -104,7 +109,7 @@
                         }}
                                         </td>
                                     </tr>
-                                    <tr v-for="(post, index) in posts" :key="index">
+                                    <tr class="list" v-for="(post, index) in posts" :key="index">
                                         <td v-if="checkDate(post.date)">
                                             {{ post.team2 }}
                                         </td>
@@ -114,24 +119,27 @@
                                         <td v-if="checkDate(post.date)">
                                             {{ formatDate(post.date) }}
                                         </td>
+                                        <td v-if="checkDate(post.date)"><a>Volunteer</a></td>
                                     </tr>
                                 </table>
-                            </td>
-                        </tr>
-                    </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="no-schedule" v-else>
             <p>The Schedule for {{ this.$route.params.teamName}} has not been created yet.</p>
         </div>
-        <div class="description container-fluid">
-            <div class="row">
-                <div class="col featured-image">
-                    <img :src="heroImageURL">
+        <div class="description container-fluid" style="margin-bottom:50px;">
+            <div class="row text-center table-top team mx-auto">
+                <div class="col-3 offset-4 my-auto">
+                    <span class="my-auto">Announcements</span>
                 </div>
-                <div class="col">
-                    <h2>Announcements</h2>
+            </div><br>
+            <div class="row">
+
+                <div class="col-3 offset-4">
                     <article>
                         <h3>Practice</h3>
                         <p>Don't forget about practice on Friday!</p>
@@ -191,7 +199,7 @@
         methods: {
             async userVal() {
                 const res = await UserVal.userVal();
-                if (res.data.accessLevel == "coach") {
+                if (res.data.accessLevel == "coach" || res.data.accessLevel == "rep") {
                     this.$store.commit("setAuthentication", true);
                     this.auth = true
                 }
@@ -202,7 +210,7 @@
                 });
                 this.team = response.data[0];
                 this.published = this.team.published
-                console.log(this.published)
+                //console.log(this.published)
             },
             upFunc: function(loc) {
                 this.files[loc] = this.$refs.file.files[loc]
@@ -341,7 +349,7 @@
     }
 
     .team {
-        width: 60%;
+        width: 90%;
         margin: auto;
     }
 
@@ -377,7 +385,7 @@
 
     .no-schedule {
         text-align: center;
-        background: lightblue;
+        background: #00a7e5;
         padding: 20px;
         font-weight: 800;
     }
@@ -385,12 +393,13 @@
     .team table th {
         padding: 15px;
         width: 100%;
-        background-color: lightblue;
+        background-color: #00a7e5;
         text-align: center;
     }
 
     .calendar table {
         border-spacing: 10px;
+        border-collapse: separate;
     }
 
     .days td {
@@ -407,19 +416,29 @@
         margin-left: 10px;
         border: none;
         padding-top: 10px;
-        height: 60px !important;
+        height: 100px !important;
+        width: 60px !important;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
         border-radius: 3px;
         transition: all 0.3s cubic-bezier(.25, .8, .25, 1);
         cursor: pointer;
     }
 
+    .table-top td,
     .table-top {
-        background: lightblue;
+        background: #00a7e5;
+        height: 50px;
+        border-radius: 5px !important;
+        color: white;
+        font-weight: 800;
+    }
+
+    .list:nth-child(even) {
+        background: #eee;
     }
 
     .labels {
-        background: lightblue;
+        background: #00a7e5;
         font-weight: bold;
     }
 
@@ -488,12 +507,12 @@
     }
 
     .active {
-        background-color: lightblue;
+        background-color: #00a7e5;
         color: white;
     }
 
     .blue-row {
-        background: lightblue;
+        background: #00a7e5;
     }
 
     .blue-icon {
@@ -520,8 +539,9 @@
     hr {
         border: 0;
         height: 1px;
-        background: #333;
-        background-image: linear-gradient(to right, #ccc, #aaa, #ccc);
+        background: linear-gradient(to right, #ccc, #aaa, #ccc);
+        width: 90%;
+
     }
 
     .tooltip {

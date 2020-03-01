@@ -1,76 +1,79 @@
 <template>
-  <div class="hello">
-    <div>
-      <h2>Login</h2>
-      <input type="text" v-model="username" /><br />
-      <input type="password" v-model="password" /><br />
-      <button @click="login">Login</button>
-      <button @click="userVal">validate</button>
-      <button @click="logout">logout</button>
-      <p v-if="messageBool">{{ message }}</p>
+    <div class="hello">
+        <div>
+            <h2>Login</h2>
+            <input type="text" v-model="username" /><br />
+            <input type="password" v-model="password" /><br />
+            <button @click="login">Login</button>
+
+            <button @click="logout">logout</button>
+            <p v-if="messageBool">{{ message }}</p>
+        </div>
     </div>
-  </div>
 </template>
 
 <script>
-import LoginService from "@/services/LoginService";
-//import UserVal from "@/services/UserVal";
-import Logout from "@/services/Logout";
-export default {
-  name: "HelloWorld",
-  data() {
-    return {
-      username: "",
-      password: "",
-      messageBool: false,
-      message: "Your Login Info Is Incorrect, Try Again"
+    import LoginService from "@/services/LoginService";
+    //import UserVal from "@/services/UserVal";
+    import Logout from "@/services/Logout";
+    export default {
+        name: "HelloWorld",
+        data() {
+            return {
+                username: "",
+                password: "",
+                messageBool: false,
+                message: "Your Login Info Is Incorrect, Try Again"
+            };
+        },
+        methods: {
+            async login() {
+                const res = await LoginService.postLogin({
+                    username: this.username,
+                    password: this.password
+                });
+                if (res == "admin") {
+                    this.$store.commit("setAuthentication", true);
+                    //console.log(this.$store.state.authenticated)
+                    this.$router.push({
+                        name: "Orgs"
+                    });
+                } else {
+                    this.messageBool = true;
+                }
+            },
+            // async userVal() {
+            //  const res = await UserVal.userVal();
+            // },
+            async logout() {
+                this.$store.commit("setAuthentication", false);
+                await Logout.logout();
+                //console.log(res)
+                //this.$store.commit("setAuthentication", false);
+            }
+        }
     };
-  },
-  methods: {
-    async login() {
-      const res = await LoginService.postLogin({
-        username: this.username,
-        password: this.password
-      });
-      if (res == "admin") {
-        this.$store.commit("setAuthentication", true);
-        this.$router.push({
-          name: "Orgs"
-        });
-      } else {
-        this.messageBool = true;
-      }
-    },
-    // async userVal() {
-    //  const res = await UserVal.userVal();
-    // },
-    async logout() {
-      this.$store.commit("setAuthentication", false);
-      await Logout.logout();
-      //console.log(res)
-      //this.$store.commit("setAuthentication", false);
-    }
-  }
-};
+
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-h3 {
-  margin: 40px 0 0;
-}
+    h3 {
+        margin: 40px 0 0;
+    }
 
-ul {
-  list-style-type: none;
-  padding: 0;
-}
+    ul {
+        list-style-type: none;
+        padding: 0;
+    }
 
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
+    li {
+        display: inline-block;
+        margin: 0 10px;
+    }
 
-a {
-  color: #42b983;
-}
+    a {
+        color: #42b983;
+    }
+
 </style>

@@ -2,8 +2,9 @@ var mongoose = require("mongoose");
 var Schema = mongoose.Schema;
 
 var PostSchema = new Schema({
-  username: String,
+    username: String,
     password: String,
+    name: String,
     accessLevel: String,
     team: String,
     organization: String,
@@ -12,9 +13,9 @@ var PostSchema = new Schema({
 });
 
 PostSchema.index({
-  username: 1
+    username: 1
 }, {
-  unique: true,
+    unique: true,
 });
 
 var User = mongoose.model("User", PostSchema);

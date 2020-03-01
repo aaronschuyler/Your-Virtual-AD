@@ -12,12 +12,13 @@ import Team from "@/components/Team";
 import Orgs from "@/components/Orgs";
 import Org from "@/components/Org";
 import OrgTeams from "@/components/OrgTeams";
+import Users from "@/components/Users";
 import Dates from "@/components/months";
 Vue.use(VueRouter);
 
 const router = new VueRouter({
-    //mode: "history",
-    //base: process.env.BASE_URL,
+    mode: "history",
+    base: process.env.BASE_URL,
     routes: [
         {
             path: "/",
@@ -73,6 +74,11 @@ const router = new VueRouter({
             path: "/dates",
             name: "Dates",
             component: Dates
+    },
+        {
+            path: "/users",
+            name: "Users",
+            component: Users
     },
         {
             path: "/organization/:orgName",
