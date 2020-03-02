@@ -7,7 +7,7 @@ const fs = require('fs')
 //cors
 const cors = require('cors')
 const corsOptions = {
-    origin: ['http://yvad.s3-website.us-east-2.amazonaws.com', 'http://yourteampage.com', 'http://localhost:8080', 'http://localhost:8081'],
+    origin: ['http://admin.yourvirtualad.com', 'http://yourteampage.com', 'http://localhost:8080', 'http://localhost:8081'],
     methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'], //the port my vue app is running on.
     credentials: true,
 }
