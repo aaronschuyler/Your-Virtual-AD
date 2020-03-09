@@ -1,5 +1,5 @@
 <template>
-  <div class="calendar">
+  <div v-if="this.$store.state.authenticated" class="calendar">
     <table>
       <tr>
         <td colspan="2"></td>
@@ -80,6 +80,7 @@
 </template>
 
 <script>
+import UserVal from "@/services/UserVal";
 export default {
   name: "Dates",
   data() {
@@ -112,6 +113,14 @@ export default {
   },
   computed: {},
   methods: {
+    async userVal() {
+      const res = await UserVal.userVal();
+      if (res.data.accessLevel == "admin") {
+        this.$store.commit("setAuthentication", true);
+      } else {
+        this.$router.push("/");
+      }
+    },
     stepMonth: function(d) {
       if (d == "up" && this.month <= 10) {
         this.month++;

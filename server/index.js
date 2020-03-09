@@ -7,7 +7,7 @@ const fs = require('fs')
 //cors
 const cors = require('cors')
 const corsOptions = {
-    origin: ['http://admin.yourvirtualad.com', 'http://yourteampage.com', 'http://localhost:8080', 'http://localhost:8081'],
+    origin: ['http://admin.yourvirtualad.com', 'http://yourteampage.com', 'http://localhost:8080', 'http://localhost:8081', 'http://192.168.1.92:8081'],
     methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'], //the port my vue app is running on.
     credentials: true,
 }
@@ -20,6 +20,7 @@ const LocalStrategy = require('passport-local')
 const mongoose = require('mongoose', {
     useUnifiedTopology: true
 })
+var uniqueValidator = require('mongoose-unique-validator')
 //models for mongo
 const Post = require("./models/post")
 const Team = require("./models/teams")
@@ -182,7 +183,7 @@ app.post('/signup', (req, res) => {
     })
 })
 //testing session
-app.get('/users', (req, res) => {
+app.get('/val', (req, res) => {
     if (req.user) {
         res.send(req.user)
         console.log("you got this!")
@@ -196,7 +197,19 @@ app.get('/logout', function (req, res) {
     })
     console.log("logging out!")
 });
-
+//Delete User
+app.delete('/users/:_id', (req, res) => {
+    var db = req.db
+    User.remove({
+        _id: req.params._id
+    }, function (err, post) {
+        if (err)
+            res.send(err)
+        res.send({
+            success: true
+        })
+    })
+})
 ///GAME ROUTES
 // Fetch all games
 app.get('/posts', (req, res) => {
@@ -218,7 +231,7 @@ app.get('/posts/:teamName', (req, res) => {
         }, {
             team2: req.params.teamName
         }]
-    }, 'team1 team2 date gameSite display', function (error, posts) {
+    }, 'team1 team2 date gameSite display home volunteers', function (error, posts) {
 
         if (error) {
             console.error(error)
@@ -235,11 +248,13 @@ app.post('/posts', (req, res) => {
     var team2 = req.body.team2
     var date = req.body.date
     var gameSite = req.body.gameSite
+    var home = req.body.home
 
     var new_post = new Post({
         team1: team1,
         team2: team2,
         date: date,
+        home: home,
         gameSite: gameSite
 
     })
@@ -267,23 +282,28 @@ app.get('/post/:id', (req, res) => {
     })
 })
 // Update a Game
-app.put('/posts/:id', (req, res) => {
+app.put('/volunteer/:id', (req, res) => {
     var db = req.db
-    Post.findById(req.params.id, 'team1 team2 date', function (error, post) {
+
+    Post.findOne({
+        _id: req.params.id
+    }, function (error, post) {
         if (error) {
             console.error(error)
         }
 
-        post.team1 = req.body.team1
-        post.team2 = req.body.team2
-        post.date = req.body.date
+        post.volunteers = req.body.volunteers
         post.save(function (error) {
             if (error) {
-                console.log(error)
+                res.send({
+                    success: false
+                })
+            } else {
+
+                res.send({
+                    success: true
+                })
             }
-            res.send({
-                success: true
-            })
         })
     })
 })
@@ -299,14 +319,14 @@ app.delete('/posts/:id', (req, res) => {
         res.send({
             success: true
         })
-        console.log("!!!!Here!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+
     })
 })
 
 //TEAMS Routes
 //Fetch Teams 
 app.get('/teams', (req, res) => {
-    Team.find({}, 'teamName organization sport division display published', function (error, teams) {
+    Team.find({}, 'teamName organization sport division display published practice', function (error, teams) {
         if (error) {
             console.error(error)
         }
@@ -321,7 +341,7 @@ app.get('/teams/:teamName', (req, res) => {
     var db = req.db
     Team.find({
         'teamName': req.params.teamName
-    }, 'teamName teamPage published', function (error, post) {
+    }, 'teamName teamPage published practice memo', function (error, post) {
         if (error) {
             console.error(error)
         }
@@ -338,13 +358,13 @@ app.post('/teams', (req, res) => {
     var division = req.body.division
     var sport = req.body.sport
     var region = req.body.region
-
+    console.log(req.body)
 
     var new_team = new Team({
         teamName: teamName,
         coach: coach,
         organization: organization,
-        divison: division,
+        division: division,
         sport: sport,
         region: region
 
@@ -372,6 +392,46 @@ app.put('/teams/:teamName', (req, res) => {
             console.error(error)
         }
         post.published = req.body.published
+        post.save(function (error) {
+            if (error) {
+                console.log(error)
+            }
+            res.send({
+                success: true
+            })
+        })
+    })
+})
+app.put('/practice/:id', (req, res) => {
+    var db = req.db
+    Team.findOne({
+        _id: req.params.id
+    }, function (error, post) {
+        if (error) {
+            console.error(error)
+        }
+
+        post.practice = req.body.practice
+        post.save(function (error) {
+            if (error) {
+                console.log(error)
+            }
+            res.send({
+                success: true
+            })
+        })
+    })
+})
+app.put('/memo/:id', (req, res) => {
+    var db = req.db
+    Team.findOne({
+        _id: req.params.id
+    }, function (error, post) {
+        if (error) {
+            console.error(error)
+        }
+
+        post.memo = req.body.memo
         post.save(function (error) {
             if (error) {
                 console.log(error)
@@ -431,7 +491,11 @@ app.get('/teamsbyorg/:orgName', (req, res) => {
 ///ORG ROUTES
 // Fetch all Orgs
 app.get('/orgs', (req, res) => {
-    Org.find({}, 'orgName city', function (error, posts) {
+    Org.find({}, 'orgName city', {
+        sort: {
+            orgName: 1
+        }
+    }, function (error, posts) {
         if (error) {
             console.error(error)
         }
@@ -502,10 +566,10 @@ app.put('/orgs/:orgName', (req, res) => {
 })
 
 // Delete a Org
-app.delete('/orgs/:orgName', (req, res) => {
+app.delete('/orgs/:_id', (req, res) => {
     var db = req.db
     Org.remove({
-        orgName: req.params.orgName
+        _id: req.params._id
     }, function (err, post) {
         if (err)
             res.send(err)

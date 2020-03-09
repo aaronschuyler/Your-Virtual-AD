@@ -25,6 +25,10 @@ var PostSchema = new Schema({
     contacts: [ContactSchema],
     gymLocations: [GymSchema]
 });
-
+PostSchema.index({
+    orgName: 1
+}, {
+    unique: true,
+});
 var Org = mongoose.model("Org", PostSchema);
 module.exports = Org;

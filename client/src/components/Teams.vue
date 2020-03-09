@@ -1,5 +1,5 @@
 <template>
-  <div class="posts">
+  <div v-if="this.$store.state.authenticated" class="posts">
     <h1>Teams</h1>
     <div v-if="teams.length > 0" class="table-wrap">
       <div></div>
@@ -65,6 +65,8 @@ export default {
       const res = await UserVal.userVal();
       if (res.data.accessLevel == "admin") {
         this.$store.commit("setAuthentication", true);
+      } else {
+        this.$router.push("/");
       }
     },
     async getTeams() {

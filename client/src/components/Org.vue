@@ -1,5 +1,5 @@
 <template>
-  <div class="org-template">
+  <div v-if="this.$store.state.authenticated" class="org-template">
     <nav class="sports-nav">
       <router-link
         v-bind:to="{
@@ -191,6 +191,7 @@
 <script>
 import OrgService from "@/services/OrgService";
 import SportsService from "@/services/SportsService";
+import UserVal from "@/services/UserVal";
 export default {
   name: "org",
 
@@ -233,8 +234,17 @@ export default {
     this.getOrg();
     this.getSports();
     this.reset();
+    this.userVal();
   },
   methods: {
+    async userVal() {
+      const res = await UserVal.userVal();
+      if (res.data.accessLevel == "admin") {
+        this.$store.commit("setAuthentication", true);
+      } else {
+        this.$router.push("/");
+      }
+    },
     editFunc: function() {
       this.edit = !this.edit;
       if (this.edit == false) {

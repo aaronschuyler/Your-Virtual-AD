@@ -8,7 +8,7 @@ export default {
     return Api().post("posts", params);
   },
   updatePost(params) {
-    return Api().put("posts/" + params.id, params);
+    return Api().put("volunteer/" + params.id, params);
   },
 
   getPost(params) {
@@ -21,5 +21,3 @@ export default {
     return Api().get("posts/" + params.teamName);
   }
 };
-
-

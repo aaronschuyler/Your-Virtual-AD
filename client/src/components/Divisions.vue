@@ -1,5 +1,5 @@
 <template>
-  <div class="table-wrap">
+  <div v-if="this.$store.state.authenticated" class="table-wrap">
     <h1>Divs</h1>
     <table>
       <tr>
@@ -45,6 +45,8 @@ export default {
       const res = await UserVal.userVal();
       if (res.data.accessLevel == "admin") {
         this.$store.commit("setAuthentication", true);
+      } else {
+        this.$router.push("/");
       }
     },
     async getDivs() {
